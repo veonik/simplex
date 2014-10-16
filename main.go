@@ -35,15 +35,13 @@ func (tok token) String() string {
 	return fmt.Sprintf("{%s '%s' %d}", names[tok.tokenType], tok.value, tok.pos)
 }
 
-type tokenStream chan token
-
 type stateFn func(*lexer) stateFn
 
 type lexer struct {
 	start  int // The position of the last emission
 	pos    int // The current position of the lexer
 	input  string
-	tokens tokenStream
+	tokens chan token
 	state  stateFn
 }
 
@@ -77,6 +75,12 @@ func (l *lexer) emit(t tokenType) {
 	tok := token{val, l.start, t}
 	l.tokens <- tok
 	l.start = l.pos
+}
+
+func (l *lexer) tokenize() {
+	for l.state = lexData; l.state != nil; {
+		l.state = l.state(l)
+	}
 }
 
 func lexData(l *lexer) stateFn {
@@ -120,14 +124,14 @@ func lexWord(l *lexer) stateFn {
 	return lexData
 }
 
-func main() {
-	lex := &lexer{0, 0, "This   is  a test, sir...", make(tokenStream), lexData}
+func newLexer(input string) *lexer {
+	return &lexer{0, 0, input, make(chan token), nil}
+}
 
-	go func() {
-		for lex.state = lexData; lex.state != nil; {
-			lex.state = lex.state(lex)
-		}
-	}()
+func main() {
+	lex := newLexer("This   is  a test-aculous test, sir...")
+
+	go lex.tokenize()
 
 	for {
 		tok := <-lex.tokens
