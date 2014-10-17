@@ -21,7 +21,7 @@ var names = map[tokenType]string{
 	tokenEof:         "EOF",
 }
 
-var wordRegexp = regexp.MustCompile("[A-za-z]+")
+var wordRegexp = regexp.MustCompile("[A-Za-z]+")
 var whitespaceRegexp = regexp.MustCompile("[\\s]+")
 var punctuationRegexp = regexp.MustCompile("[\\p{P}\\p{S}]+")
 
